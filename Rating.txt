@@ -1,0 +1,77 @@
+{
+ "title": "Evaluation for Luong Thanh Nha",
+ "description": "5 = Excellent. Exceptional Mastery. Much more than acceptable; 4 = Very Good. Full Performance Behaviours. Above average; 3 = Good. Acceptable. Satisfactory Average; 2 = Need to improve. Less than Acceptable; 1 = Failed",
+ "logoPosition": "right",
+ "pages": [
+  {
+   "name": "page1",
+   "elements": [
+    {
+     "type": "rating",
+     "name": "question1",
+     "title": "Management and/or leader skills",
+     "isRequired": true
+    },
+    {
+     "type": "rating",
+     "name": "question9",
+     "title": "Contribution",
+     "isRequired": true
+    },
+    {
+     "type": "rating",
+     "name": "question2",
+     "title": "Problem solving",
+     "isRequired": true
+    },
+    {
+     "type": "rating",
+     "name": "question3",
+     "title": "Communication skills",
+     "isRequired": true
+    },
+    {
+     "type": "rating",
+     "name": "question4",
+     "title": "Creativity and/or innovation",
+     "isRequired": true
+    },
+    {
+     "type": "rating",
+     "name": "question7",
+     "title": "Pioneering and/or progressive spirit",
+     "isRequired": true
+    },
+    {
+     "type": "rating",
+     "name": "question6",
+     "title": "Teamwork and/or collaboration skills",
+     "isRequired": true
+    },
+    {
+     "type": "comment",
+     "name": "question5",
+     "title": "Why you gave the above score?",
+     "isRequired": true
+    },
+    {
+     "type": "checkbox",
+     "name": "question8",
+     "title": "I pledge to be fair, unbiased, and non-hostile in conducting this evaluation",
+     "isRequired": true,
+     "choices": [
+      {
+       "value": "item1",
+       "text": "Agreed"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "calculatedValues": [
+  {
+   "name": "var1"
+  }
+ ]
+}
