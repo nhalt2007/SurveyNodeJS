@@ -1,108 +1,141 @@
-var demoData = require("./demo-surveys");
-
-var currentId = demoData.surveys.length + 1;
+const resultsFile = "./results.json";
+const surveyFile = "./survey.json";
+let fs = require("fs");
 
 function InMemoryDBAdapter(session) {
-  function getTable(tableName) {
-    var table = session[tableName];
+  function getTable(dataFile) {
+    let table = session[dataFile];
     if (!table) {
       table = [];
-      session[tableName] = table;
+      session[dataFile] = table;
     }
     return table;
   }
+  async function getDataJsonFile(dataFile) {
+    try {
+      return await JSON.parse(fs.readFileSync(dataFile, "utf8") || []);
+    } catch (err) {
+      console.log("Err: ", err);
+      return false;
+    }
+  }
 
-  function getObjectsFromStorage(tableName, callback) {
-    // var objects = {};
-    var table = getTable(tableName);
+  async function setDataJsonFile(dataFile, data) {
+    await fs.writeFile("./survey.json", JSON.stringify(data), (err) => {
+      if (err) {
+        console.log("Failed to write updated data to file !");
+        return;
+      }
+      console.log(`Updated data to ${dataFile} file successfully !`);
+      return;
+    });
+  }
+
+  async function getObjectsFromStorage(surveyFile, callback) {
+    let table = await getDataJsonFile(surveyFile);
     callback(table);
-    // table.forEach(function(item) {
-    //   objects[item.name] = item;
-    // });
-    // callback(objects);
   }
 
   function findById(objects, id) {
-    return objects.filter(function (o) { return o.id === id; })[0];
+    return objects.filter(function (o) {
+      return o.id === id;
+    })[0];
   }
 
-  function addSurvey(name, callback) {
-    var table = getTable("surveys");
-    var newObj = {
-      id: '' + currentId++,
-      name: name || demoData.defaultName + " " + currentId,
-      json: "{}"
-    };
-    table.push(newObj);
-    callback(newObj);
-  }
-
-  function postResults(postId, json, callback) {
-    var table = getTable("results");
-    var results = findById(table, postId);
-    if (!results) {
-      results = {
-        id: postId,
-        data: []
-      }
-      table.push(results);
+  async function addSurvey(name, callback) {
+    let getDataAsync = await getDataJsonFile(surveyFile);
+    if (getDataAsync) {
+      let currentId = getDataAsync.length + 1;
+      const newObj = {
+        id: "" + currentId,
+        name: name || "Survey" + " " + currentId,
+        json: "{}",
+      };
+      const addData = [...getDataAsync, newObj];
+      await setDataJsonFile(surveyFile, addData);
+      callback(newObj);
     }
-    results.data.push(json);
-    callback({});
+  }
+
+  function postResults(postId, dataResult, callback) {
+    if (postId && Object.keys(dataResult).length > 0) {
+      const dataFormat = {
+        id: postId,
+        data: [{ ...dataResult }],
+      };
+      console.log("dataFormat", dataFormat);
+      fs.readFile(resultsFile, function (err, data) {
+        const json = JSON.parse(data) || [];
+        const array = [...json];
+        const findIndex = array.findIndex((item) => item.id === postId);
+        if (findIndex >= 0) {
+          array[findIndex]?.data.push(...dataFormat?.data);
+        } else {
+          array.push(dataFormat);
+        }
+        fs.writeFile(resultsFile, JSON.stringify(array), (err) => {
+          if (err) {
+            console.log("Failed to write updated data to file !");
+            return;
+          }
+          console.log("Updated file to results.json file successfully !");
+        });
+      });
+      callback({});
+    }
   }
 
   function getResults(postId, callback) {
-    var table = getTable("results");
-    var results = findById(table, postId);
-    callback(results);
+    fs.readFile(resultsFile, function (err, data) {
+      let dataJson = JSON.parse(data);
+      let results = findById(dataJson, postId);
+      callback(results);
+    });
   }
 
-  function deleteSurvey(surveyId, callback) {
-    var table = getTable("surveys");
-    var survey = findById(table, surveyId);
-    table.splice(table.indexOf(survey), 1);
-    callback(survey);
-  }
-
-  function storeSurvey(id, name, json, callback) {
-    var table = getTable("surveys");
-    var survey = findById(table, id);
-    if (!!survey) {
-      survey.json = json;
-    } else {
-      survey = {
-        id: id,
-        name: name || id,
-        json: json
-      };
-      table.push(survey);
+  async function deleteSurvey(surveyId, callback) {
+    let table = await getDataJsonFile(surveyFile);
+    const findIndex = table.findIndex((item) => item.id == surveyId);
+    if (findIndex >= 0) {
+      const newData = table.filter((item) => {
+        return item.id !== surveyId;
+      });
+      await setDataJsonFile(surveyFile, newData);
+      callback(findIndex);
     }
-    callback && callback(survey);
+  }
+
+  async function storeSurvey(surveyId, name, json, callback) {
+    let table = await getDataJsonFile(surveyFile);
+    const findIndex = table.findIndex((item) => item.id == surveyId);
+    if (findIndex >= 0) {
+      table[findIndex].json = { ...json };
+      await setDataJsonFile(surveyFile, table);
+    }
+    callback?.(findIndex);
   }
 
   function changeName(id, name, callback) {
-    var table = getTable("surveys");
-    var survey = findById(table, id);
+    let table = getTable("surveys");
+    let survey = findById(table, id);
     if (!!survey) {
       survey.name = name;
     }
     callback && callback(survey);
   }
 
-  function getSurveys(callback) {
-    getObjectsFromStorage("surveys", function (objects) {
+  async function getSurveys(callback) {
+    await getObjectsFromStorage(surveyFile, async function (objects) {
       if (objects.length > 0) {
         callback(objects);
       } else {
-        var surveys = getTable("surveys");
-        demoData.surveys.forEach(function (survey) {
-          surveys.push(JSON.parse(JSON.stringify(survey)));
-        })
-        var results = getTable("results");
-        demoData.results.forEach(function (result) {
-          results.push(JSON.parse(JSON.stringify(result)));
-        })
-        getObjectsFromStorage("surveys", callback);
+        let surveys = await getDataJsonFile(surveyFile);
+        let results = await getDataJsonFile(resultsFile);
+
+        await setDataJsonFile(surveyFile, surveys);
+        await setDataJsonFile(resultsFile, results);
+
+        await getObjectsFromStorage(surveyFile, callback);
       }
     });
   }
@@ -119,7 +152,7 @@ function InMemoryDBAdapter(session) {
     deleteSurvey: deleteSurvey,
     postResults: postResults,
     getResults: getResults,
-    changeName: changeName
+    changeName: changeName,
   };
 }
 

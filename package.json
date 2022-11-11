@@ -4,7 +4,7 @@
   "description": "Sample NodeJS backend for SurveyJS: Survey Library and Survey Creator",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "nodemon --exec babel-node index.js"
   },
   "repository": {
     "type": "git",
@@ -27,9 +27,16 @@
   },
   "homepage": "https://github.com/surveyjs/surveyjs-nodejs#readme",
   "dependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.20.2",
+    "@babel/node": "^7.20.2",
+    "@babel/preset-env": "^7.20.2",
+    "babel-core": "^6.26.3",
     "body-parser": "^1.18.2",
+    "dotenv": "^16.0.3",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
+    "nodemon": "^2.0.20",
     "pg-promise": "^7.3.2"
   }
 }
