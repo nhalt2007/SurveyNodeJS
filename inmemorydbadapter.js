@@ -129,12 +129,6 @@ function InMemoryDBAdapter(session) {
       if (objects.length > 0) {
         callback(objects);
       } else {
-        let surveys = await getDataJsonFile(surveyFile);
-        let results = await getDataJsonFile(resultsFile);
-
-        await setDataJsonFile(surveyFile, surveys);
-        await setDataJsonFile(resultsFile, results);
-
         await getObjectsFromStorage(surveyFile, callback);
       }
     });
